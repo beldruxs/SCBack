@@ -2,8 +2,12 @@ package com.jedos.jedosbackend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Info;
 
 @SpringBootApplication
+@OpenAPIDefinition(info = @Info(title = "Cubiqfy API", version = "1.0", description = "Cubiqfy API"))
+
 public class JedosBackendApplication {
 
     public static void main(String[] args) {
