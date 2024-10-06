@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,5 +32,10 @@ public class ServiceService {
         serviceDTO.setPrice(serviceEntity.getPrice());
         serviceDTO.setReccurente(serviceEntity.getReccurente());
         return serviceDTO;
+    }
+
+    public Optional<ServiceDTO> getServiceById(Integer id) {
+        Optional<ServiceEntity> serviceEntity = serviceRepository.findById(id);
+        return serviceEntity.map(this::convertToDTO);
     }
 }
