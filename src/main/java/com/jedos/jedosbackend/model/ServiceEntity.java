@@ -31,4 +31,10 @@ public class ServiceEntity {
 
     @Column(name = "reccurente")
     private Boolean reccurente;
+
+    @Column(name = "descriptionPlus", columnDefinition = "TEXT COLLATE 'latin1_spanish_ci'")
+    private String descriptionPlus;
+
+    @Column(name = "descripcionPlus", columnDefinition = "TEXT COLLATE 'latin1_spanish_ci'")
+    private String descripcionPlus;
 }

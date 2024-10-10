@@ -29,6 +29,8 @@ public class ServiceService {
         serviceDTO.setTitulo(serviceEntity.getTitulo());
         serviceDTO.setDescription(serviceEntity.getDescription());
         serviceDTO.setDescripcion(serviceEntity.getDescripcion());
+        serviceDTO.setDescriptionPlus(serviceEntity.getDescriptionPlus());
+        serviceDTO.setDescripcionPlus(serviceEntity.getDescripcionPlus());
         serviceDTO.setPrice(serviceEntity.getPrice());
         serviceDTO.setReccurente(serviceEntity.getReccurente());
         return serviceDTO;

@@ -11,6 +11,8 @@ public class ServiceDTO {
     private String titulo;
     private String description;
     private String descripcion;
+    private String descriptionPlus;
+    private String descripcionPlus;
     private Double price;
     private Boolean reccurente;
 }
