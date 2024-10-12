@@ -1,3 +1,4 @@
+// SecurityConfig.java
 package com.jedos.jedosbackend.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/blogs/**").permitAll()
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
+                )
+                .oauth2Login(oauth2 -> oauth2
+                        .loginPage("/login")
+                        .userInfoEndpoint(userInfo -> userInfo.oidcUserService(this.oidcUserService()))
                 );
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
@@ -69,6 +74,7 @@ public class SecurityConfig {
     public JWTAuthenticationFilter jwtAuthenticationFilter() {
         return new JWTAuthenticationFilter();
     }
+
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -78,22 +84,6 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);  // Aplica la configuración CORS a todas las rutas
         return source;
-    }
-
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .authorizeRequests(authorizeRequests ->
-                        authorizeRequests
-                                .requestMatchers("/", "/login**", "/error**").permitAll()
-                                .anyRequest().authenticated()
-                )
-                .oauth2Login(oauth2Login ->
-                        oauth2Login
-                                .loginPage("/login")
-                                .userInfoEndpoint(userInfoEndpoint ->
-                                        userInfoEndpoint.oidcUserService(this.oidcUserService())
-                                )
-                );
     }
 
     @Bean
