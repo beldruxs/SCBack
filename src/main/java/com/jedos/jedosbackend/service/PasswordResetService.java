@@ -24,9 +24,12 @@ public class PasswordResetService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public String generateToken(Integer userId) {
+    @Autowired
+    private EmailService emailService;
+
+    public void generateToken(Integer userId) {
         long tokenCount = tokenRepository.countByUserIdAndCreatedAtAfter(userId, LocalDateTime.now().minusDays(1));
-        if (tokenCount >= 2) {
+        if (tokenCount >= 5) {
             throw new RuntimeException("Token generation limit exceeded");
         }
 
@@ -37,7 +40,12 @@ public class PasswordResetService {
         resetToken.setCreatedAt(LocalDateTime.now());
         tokenRepository.save(resetToken);
 
-        return token;
+        // Send email with the token
+        UserEntity user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        String email = user.getMail();
+        String subject = "Password Reset Request";
+        String text = "Your password reset code is: " + token;
+        emailService.sendEmail(email, subject, text);
     }
 
     public boolean validateToken(String token) {

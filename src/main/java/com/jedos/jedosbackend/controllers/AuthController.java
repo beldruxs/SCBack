@@ -1,19 +1,21 @@
 package com.jedos.jedosbackend.controllers;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.qrcode.QRCodeWriter;
 import com.jedos.jedosbackend.dto.*;
 import com.jedos.jedosbackend.model.Role;
 import com.jedos.jedosbackend.model.UserEntity;
 import com.jedos.jedosbackend.repository.RoleRepository;
 import com.jedos.jedosbackend.repository.UserRepository;
 import com.jedos.jedosbackend.security.JWTGenerator;
+import com.jedos.jedosbackend.service.EmailService;
 import com.jedos.jedosbackend.service.PasswordResetService;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import org.jboss.aerogear.security.otp.Totp;
+import org.jboss.aerogear.security.otp.api.Base32;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,8 +25,11 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayOutputStream;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.Random;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -36,12 +41,10 @@ public class AuthController {
     private RoleRepository roleRepository;
     private PasswordEncoder passwordEncoder;
     private JWTGenerator jwtGenerator;
+    private EmailService emailService;
 
     @Autowired
     private PasswordResetService passwordResetService;
-
-    @Autowired
-    private JavaMailSender mailSender;
 
     @Autowired
     public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository,
@@ -51,6 +54,7 @@ public class AuthController {
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtGenerator = jwtGenerator;
+
     }
 
     @CrossOrigin(origins = "*")
@@ -172,19 +176,7 @@ public class AuthController {
         }
 
         UserEntity user = userOptional.get();
-        String token = passwordResetService.generateToken(user.getId());
-
-        // Send email
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            helper.setTo(user.getMail());
-            helper.setSubject("Password Reset Request");
-            helper.setText("Your password reset code is: " + token);
-            mailSender.send(message);
-        } catch (MessagingException e) {
-            return new ResponseEntity<>("Failed to send email", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        passwordResetService.generateToken(user.getId());
 
         return new ResponseEntity<>("Password reset token sent", HttpStatus.OK);
     }
@@ -197,6 +189,92 @@ public class AuthController {
 
         passwordResetService.resetPassword(resetDto.getToken(), resetDto.getNewPassword());
         return new ResponseEntity<>("Password reset successfully", HttpStatus.OK);
+    }
+    @CrossOrigin(origins = "*")
+    @PostMapping("login/admin2")
+    public ResponseEntity<?> loginAsAdmin(@RequestBody AdminLoginDto loginDto) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginDto.getUsername(),
+                        loginDto.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String token = jwtGenerator.generateToken(authentication);
+
+        // Obtener el ID del usuario
+        Optional<Integer> userOptional = userRepository.findIdByUsername(loginDto.getUsername());
+        if (userOptional.isEmpty()) {
+            throw new RuntimeException("User not found after successful authentication");
+        }
+
+        Integer idUser = userOptional.get();
+        UserEntity user = userRepository.findById(idUser).orElseThrow(() -> new RuntimeException("User not found"));
+        Role adminRole = roleRepository.findByName("ADMIN").orElseThrow(() -> new RuntimeException("Role not found"));
+        boolean isAdmin = user.getRoles().stream().anyMatch(role -> role.equals(adminRole));
+
+        if (!isAdmin) {
+            return new ResponseEntity<>("Unauthorized", HttpStatus.UNAUTHORIZED);
+        }
+
+        // Generate OTP and send to email
+        String otpCode = String.format("%06d", new Random().nextInt(1000000));
+        String email = user.getMail();
+        String subject = "Admin Login OTP";
+        String text = "Your OTP code is: " + otpCode;
+        emailService.sendEmail(email, subject, text);
+
+        // Save OTP to database or cache (not implemented here)
+
+        return new ResponseEntity<>(new AuthResponseDTO(token, idUser), HttpStatus.OK);
+    }
+
+    @CrossOrigin(origins = "*")
+    @PostMapping("verify-otp")
+    public ResponseEntity<?> verifyOtp(@RequestBody AdminLoginDto loginDto) {
+        // Verify OTP (not implemented here)
+        boolean isOtpValid = true; // Replace with actual OTP validation logic
+
+        if (!isOtpValid) {
+            return new ResponseEntity<>("Invalid OTP", HttpStatus.UNAUTHORIZED);
+        }
+
+        return new ResponseEntity<>("OTP verified successfully", HttpStatus.OK);
+    }
+
+    @PostMapping("/setup-2fa")
+    public ResponseEntity<String> setupTwoFactorAuthentication(@RequestParam String email) {
+        UserEntity user = userRepository.findByMail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String secret = Base32.random();
+        user.setSecretKey(secret);
+        userRepository.save(user);
+
+        String qrData = "otpauth://totp/TuAplicacion:" + user.getUsername() + "?secret=" + secret + "&issuer=TuAplicacion";
+        QRCodeWriter qrCodeWriter = new QRCodeWriter();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            var bitMatrix = qrCodeWriter.encode(qrData, BarcodeFormat.QR_CODE, 200, 200);
+            MatrixToImageWriter.writeToStream(bitMatrix, "PNG", outputStream);
+            byte[] pngData = outputStream.toByteArray();
+            String base64Qr = Base64.getEncoder().encodeToString(pngData);
+
+            return new ResponseEntity<>(base64Qr, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error al generar el código QR", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/verify-2fa")
+    public ResponseEntity<String> verifyTwoFactorCode(@RequestBody TwoFactorDTO twoFactorDto) {
+        UserEntity user = userRepository.findById(twoFactorDto.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Totp totp = new Totp(user.getSecretKey());
+        if (totp.verify(twoFactorDto.getCode())) {
+            return new ResponseEntity<>("2FA verificado correctamente", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("Código 2FA incorrecto", HttpStatus.UNAUTHORIZED);
+        }
     }
 
 }
