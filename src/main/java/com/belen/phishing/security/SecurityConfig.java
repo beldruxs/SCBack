@@ -46,6 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/**").permitAll()
                         .requestMatchers("/api/contact/**").permitAll()
                         .requestMatchers("/api/fakeuser/**").permitAll()
+                        .requestMatchers("/api/send-email/**").permitAll()
                         .requestMatchers("/api/fakepage/**").permitAll()
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()

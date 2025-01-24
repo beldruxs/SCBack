@@ -6,8 +6,7 @@ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Info;
 
 @SpringBootApplication
-@OpenAPIDefinition(info = @Info(title = "Cubiqfy API", version = "1.0", description = "Cubiqfy API"))
-
+@OpenAPIDefinition(info = @Info(title = "Safe Click API", version = "1.0", description = "Safe Click API"))
 public class PhishingApplication {
 
     public static void main(String[] args) {

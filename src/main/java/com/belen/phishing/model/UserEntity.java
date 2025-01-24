@@ -53,6 +53,9 @@ public class UserEntity implements UserDetails {
     @Column(name = "secret_key")
     private String secretKey;
 
+    @Column(name = "puntos")
+    private String puntos;
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),

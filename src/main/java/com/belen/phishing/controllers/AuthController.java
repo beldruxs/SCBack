@@ -6,6 +6,7 @@ import com.belen.phishing.model.UserEntity;
 import com.belen.phishing.repository.RoleRepository;
 import com.belen.phishing.repository.UserRepository;
 import com.belen.phishing.security.JWTGenerator;
+import com.belen.phishing.service.AuthService;
 import com.belen.phishing.service.EmailService;
 import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,9 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
     private JWTGenerator jwtGenerator;
     private EmailService emailService;
+
+    @Autowired
+    private AuthService authService;
 
     @Autowired
     public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository,
@@ -98,26 +102,6 @@ public class AuthController {
     @CrossOrigin(origins = "*")
     @PostMapping("register")
     public ResponseEntity<String> register(@RequestBody RegisterRequest registerRequest) {
-        if (userRepository.existsByUsername(registerRequest.getUsername())) {
-            return new ResponseEntity<>("Username is taken!", HttpStatus.BAD_REQUEST);
-        }
-
-        UserEntity user = new UserEntity();
-        user.setNombre(registerRequest.getNombre());
-        user.setApellido1(registerRequest.getApellido1());
-        user.setApellido2(registerRequest.getApellido2());
-        user.setUsername(registerRequest.getUsername());
-        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        user.setMail(registerRequest.getMail());
-        user.setTelefono(registerRequest.getTelefono());
-        user.setFrecuencia(registerRequest.getFrecuencia());
-
-        // Asume que Role ya está definido para "USER"
-        Role roles = roleRepository.findByName("USER").get();
-        user.setRoles(Collections.singletonList(roles));
-
-        userRepository.save(user);
-
-        return new ResponseEntity<>("User registered successfully!", HttpStatus.OK);
+        return authService.register(registerRequest);
     }
 }
