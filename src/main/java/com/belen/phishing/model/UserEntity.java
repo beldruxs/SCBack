@@ -1,3 +1,4 @@
+// UserEntity.java
 package com.belen.phishing.model;
 
 import lombok.Data;
@@ -25,8 +26,11 @@ public class UserEntity implements UserDetails {
     @Column(name = "nombre")
     private String nombre;
 
-    @Column(name = "apellido")
-    private String apellido;
+    @Column(name = "apellido1")
+    private String apellido1;
+
+    @Column(name = "apellido2")
+    private String apellido2;
 
     @Column(name = "username")
     private String username;
@@ -37,12 +41,17 @@ public class UserEntity implements UserDetails {
     @Column(name = "mail")
     private String mail;
 
+    @Column(name = "telefono")
+    private String telefono;
+
+    @Column(name = "frecuencia")
+    private String frecuencia;
+
     @Column(name = "profile_img")
     private String profileImg;
 
     @Column(name = "secret_key")
     private String secretKey;
-
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "user_roles",
@@ -77,10 +86,6 @@ public class UserEntity implements UserDetails {
         return true;
     }
 
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
 
     @Override
     public boolean isEnabled() {

@@ -29,7 +29,7 @@ public class UserController {
         UserEntity user = userOptional.get(); // Obtiene el UserEntity del Optional
         Map<String, Object> response = new HashMap<>();
         response.put("nombre", user.getNombre());
-        response.put("apellido", user.getApellido());
+        response.put("apellido", user.getApellido1());
         response.put("mail", user.getMail());
         response.put("profileImg", user.getProfileImg());
         return ResponseEntity.ok(response);

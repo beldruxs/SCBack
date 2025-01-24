@@ -7,6 +7,7 @@ import com.belen.phishing.repository.RoleRepository;
 import com.belen.phishing.repository.UserRepository;
 import com.belen.phishing.security.JWTGenerator;
 import com.belen.phishing.service.EmailService;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,6 @@ public class AuthController {
     private JWTGenerator jwtGenerator;
     private EmailService emailService;
 
-
     @Autowired
     public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository,
                           RoleRepository roleRepository, PasswordEncoder passwordEncoder, JWTGenerator jwtGenerator) {
@@ -41,7 +41,6 @@ public class AuthController {
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtGenerator = jwtGenerator;
-
     }
 
     @CrossOrigin(origins = "*")
@@ -66,19 +65,52 @@ public class AuthController {
     }
 
     @CrossOrigin(origins = "*")
+    @PostMapping("loginAdmin")
+    public ResponseEntity<AuthResponseDTO> loginAdmin(@RequestBody LoginDto loginDto){
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginDto.getUsername(),
+                        loginDto.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Obtener el usuario autenticado
+        Optional<UserEntity> userOptional = userRepository.findUserdByUsername(loginDto.getUsername());
+        if (!userOptional.isPresent()) {
+            throw new RuntimeException("User not found after successful authentication");
+        }
+
+        UserEntity user = userOptional.get();
+
+        // Verificar si el usuario tiene el rol de admin (role_id = 1)
+        boolean isAdmin = user.getRoles().stream()
+                .anyMatch(role -> role.getId() == 1);
+
+        if (!isAdmin) {
+            return new ResponseEntity<>(new AuthResponseDTO(null, "Access denied. Admin role required."), HttpStatus.FORBIDDEN);
+        }
+
+        String token = jwtGenerator.generateToken(authentication);
+        String username = user.getUsername();
+
+        return new ResponseEntity<>(new AuthResponseDTO(token, username), HttpStatus.OK);
+    }
+
+    @CrossOrigin(origins = "*")
     @PostMapping("register")
-    public ResponseEntity<String> register(@RequestBody RegisterDto registerDto) {
-        if (userRepository.existsByUsername(registerDto.getUsername())) {
+    public ResponseEntity<String> register(@RequestBody RegisterRequest registerRequest) {
+        if (userRepository.existsByUsername(registerRequest.getUsername())) {
             return new ResponseEntity<>("Username is taken!", HttpStatus.BAD_REQUEST);
         }
 
         UserEntity user = new UserEntity();
-        user.setNombre(registerDto.getNombre());
-        user.setApellido(registerDto.getApellido());
-        user.setUsername(registerDto.getUsername());
-        user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
-        user.setMail(registerDto.getMail());
-        user.setProfileImg(registerDto.getProfileImg());
+        user.setNombre(registerRequest.getNombre());
+        user.setApellido1(registerRequest.getApellido1());
+        user.setApellido2(registerRequest.getApellido2());
+        user.setUsername(registerRequest.getUsername());
+        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        user.setMail(registerRequest.getMail());
+        user.setTelefono(registerRequest.getTelefono());
+        user.setFrecuencia(registerRequest.getFrecuencia());
 
         // Asume que Role ya está definido para "USER"
         Role roles = roleRepository.findByName("USER").get();
@@ -88,8 +120,4 @@ public class AuthController {
 
         return new ResponseEntity<>("User registered successfully!", HttpStatus.OK);
     }
-
-
-
-
 }
