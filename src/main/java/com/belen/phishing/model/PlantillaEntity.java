@@ -23,4 +23,7 @@ public class PlantillaEntity {
     @ManyToOne
     @JoinColumn(name = "fake_page_id", nullable = true)
     private FakePageEntity fakePage;
+
+    @Column(name = "lEmailActivo")
+    private boolean lEmailActivo;
 }

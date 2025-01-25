@@ -1,6 +1,7 @@
 // UserEntity.java
 package com.belen.phishing.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 @Table(name = "users")
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class UserEntity implements UserDetails {
 
     @Id
@@ -54,7 +56,10 @@ public class UserEntity implements UserDetails {
     private String secretKey;
 
     @Column(name = "puntos")
-    private String puntos;
+    private Integer puntos;
+
+    @Column(name = "lNotificable")
+    private boolean lNotificable;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "user_roles",
@@ -93,5 +98,13 @@ public class UserEntity implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        lNotificable = true;
+        if (puntos == null) {
+            puntos = 0;
+        }
     }
 }

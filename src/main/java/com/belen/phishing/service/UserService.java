@@ -13,6 +13,9 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    public void save(UserEntity user) {
+        userRepository.save(user);
+    }
     public Optional<UserEntity> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }

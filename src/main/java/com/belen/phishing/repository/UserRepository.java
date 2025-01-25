@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-
 public interface UserRepository extends JpaRepository<UserEntity, Integer> {
     Optional<UserEntity> findByUsername(String username);
     Optional<UserEntity> findByMail(String mail);
@@ -23,6 +22,4 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
     Optional<Integer> findIdByMail(String mail);
 
     Boolean existsByUsername(String username);
-
-
 }

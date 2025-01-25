@@ -12,4 +12,6 @@ public interface PlantillaRepository extends JpaRepository<PlantillaEntity, Inte
     @Query("SELECT p.html FROM PlantillaEntity p WHERE p.codPlantilla = :codPlantilla")
     String findHtmlByCodPlantilla(@Param("codPlantilla") String codPlantilla);
 
+    @Query("SELECT p FROM PlantillaEntity p WHERE p.codPlantilla = :codPlantilla")
+    PlantillaEntity findPlantillaByCodPlantilla(@Param("codPlantilla") String codPlantilla);
 }

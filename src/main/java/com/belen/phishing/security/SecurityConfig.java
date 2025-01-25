@@ -48,6 +48,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/fakeuser/**").permitAll()
                         .requestMatchers("/api/send-email/**").permitAll()
                         .requestMatchers("/api/fakepage/**").permitAll()
+                        .requestMatchers("/api/phishing/**").permitAll()
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
                         .anyRequest().authenticated()
                 )
