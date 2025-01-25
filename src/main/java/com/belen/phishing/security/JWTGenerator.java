@@ -1,4 +1,3 @@
-// JWTGenerator.java
 package com.belen.phishing.security;
 
 import io.jsonwebtoken.Claims;

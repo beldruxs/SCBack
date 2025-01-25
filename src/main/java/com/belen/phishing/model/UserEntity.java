@@ -1,4 +1,3 @@
-// UserEntity.java
 package com.belen.phishing.model;
 
 import lombok.AllArgsConstructor;
@@ -61,6 +60,15 @@ public class UserEntity implements UserDetails {
     @Column(name = "lNotificable")
     private boolean lNotificable;
 
+    @Column(name = "N_PHISHING_RECIBIDO")
+    private Integer nPhishingRecibido;
+
+    @Column(name = "N_PHISHING_ENTRADO")
+    private Integer nPhishingEntrado;
+
+    @Column(name = "N_PHISHING_PICADO")
+    private Integer nPhishingPicado;
+
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
@@ -105,6 +113,15 @@ public class UserEntity implements UserDetails {
         lNotificable = true;
         if (puntos == null) {
             puntos = 0;
+        }
+        if (nPhishingRecibido == null) {
+            nPhishingRecibido = 0;
+        }
+        if (nPhishingEntrado == null) {
+            nPhishingEntrado = 0;
+        }
+        if (nPhishingPicado == null) {
+            nPhishingPicado = 0;
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.belen.phishing.controllers;
 
 import com.belen.phishing.dto.UserDTO;
+import com.belen.phishing.dto.UserInfoDTO;
 import com.belen.phishing.model.UserEntity;
 import com.belen.phishing.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,5 +55,23 @@ public class UserController {
         userService.save(user);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/profileData/{username}")
+    public ResponseEntity<?> getDataUserProfile(@PathVariable String username) {
+        Optional<UserEntity> userOptional = userService.findByUsername(username);
+        if (userOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        UserEntity user = userOptional.get();
+        UserInfoDTO userDTO = new UserInfoDTO();
+        userDTO.setNombre(user.getNombre());
+        userDTO.setPuntos(user.getPuntos());
+        userDTO.setEntrado(user.getNPhishingEntrado());
+        userDTO.setRecibido(user.getNPhishingRecibido());
+        userDTO.setEnviado(user.getNPhishingPicado());
+
+        return ResponseEntity.ok(userDTO);
+    }
+
 
 }

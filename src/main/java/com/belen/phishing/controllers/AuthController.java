@@ -1,14 +1,12 @@
 package com.belen.phishing.controllers;
 
 import com.belen.phishing.dto.*;
-import com.belen.phishing.model.Role;
 import com.belen.phishing.model.UserEntity;
 import com.belen.phishing.repository.RoleRepository;
 import com.belen.phishing.repository.UserRepository;
 import com.belen.phishing.security.JWTGenerator;
 import com.belen.phishing.service.AuthService;
 import com.belen.phishing.service.EmailService;
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
