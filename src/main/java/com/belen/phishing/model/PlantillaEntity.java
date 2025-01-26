@@ -26,4 +26,7 @@ public class PlantillaEntity {
 
     @Column(name = "lEmailActivo")
     private boolean lEmailActivo;
+
+    @Column(name = "subject")
+    private String subject;
 }

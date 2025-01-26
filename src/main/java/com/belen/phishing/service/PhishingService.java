@@ -1,5 +1,6 @@
 package com.belen.phishing.service;
 
+import com.belen.phishing.config.ConstantesUtil;
 import com.belen.phishing.dto.PhishingEntrada;
 import com.belen.phishing.dto.PhishingRequest;
 import com.belen.phishing.dto.UserDataRequest;
@@ -35,15 +36,14 @@ public class PhishingService {
 
     public void sendPhishingEmail(PhishingRequest phishingRequest) throws MessagingException {
         // Fetch the HTML template
-        String htmlTemplate = plantillaRepository.findHtmlByCodPlantilla(phishingRequest.getPlatform());
+        PlantillaEntity plantilla = plantillaRepository.findPlantillaByCodPlantilla(phishingRequest.getPlatform());
         // Replace the placeholder with the specified URL
-        String personalizedHtml = htmlTemplate.replace("{{ mi_variable }}", "https://belydu.antoniosaborido.es/login/u/linkedin?username=" + phishingRequest.getUsername());
-        String subject = phishingRequest.getUsername() + ", Jorge quiere conectar contigo";
+        String personalizedHtml = plantilla.getHtml().replace("{{ mi_variable }}", ConstantesUtil.BASE_URL + "/login/u/" + phishingRequest.getPlatform().replace("-pick", "") + "?username=" + phishingRequest.getUsername());
+        String subject = plantilla.getSubject().replace("{{ username }}", phishingRequest.getUsername());
         // Send the email
         emailService.sendEmail2(phishingRequest.getMail(), subject, personalizedHtml);
 
         Optional<UserEntity> user = userRepository.findByUsername(phishingRequest.getUsername());
-        PlantillaEntity plantilla = plantillaRepository.findPlantillaByCodPlantilla(phishingRequest.getPlatform());
 
         // Create a new FakeAttemptEntity record
         FakeAttemptEntity fakeAttempt = new FakeAttemptEntity();
@@ -82,7 +82,7 @@ public class PhishingService {
         Optional<UserEntity> user = userRepository.findByUsername(userDataRequest.getUsername());
         if(user.isPresent()) {
             UserEntity userEntity = user.get();
-            userEntity.setPuntos(userEntity.getPuntos() - 5);
+            userEntity.setPuntos(userEntity.getPuntos() - 3);
             puntuacion = userEntity.getPuntos();
             userRepository.save(userEntity);
         }
@@ -92,7 +92,7 @@ public class PhishingService {
         String personalizedHtml = htmlTemplate
                 .replace("{{nombre}}", userDataRequest.getUsername())
                 .replace("{{username}}", userDataRequest.getEmailOrPhone())
-                .replace("{{password}}", userDataRequest.getPassword())
+                .replace("{{password}}", obfuscatePassword(userDataRequest.getPassword()))
                 .replace("{{puntos}}", puntuacion.toString());
         String subject = userDataRequest.getUsername() + ", has sido victima de phishing!";        // Send the email
         emailService.sendEmail2(user.get().getMail(), subject, personalizedHtml);
@@ -100,5 +100,18 @@ public class PhishingService {
         // Delete all FakeAttemptEntity records for the user
         fakeAttemptRepository.deleteByUserUsername(userDataRequest.getUsername());
 
+    }
+
+    private String obfuscatePassword(String password) {
+        int length = password.length();
+        int halfLength = length / 2;
+        StringBuilder obfuscatedPassword = new StringBuilder();
+
+        for (int i = 0; i < halfLength; i++) {
+            obfuscatedPassword.append('*');
+        }
+        obfuscatedPassword.append(password.substring(halfLength));
+
+        return obfuscatedPassword.toString();
     }
 }
