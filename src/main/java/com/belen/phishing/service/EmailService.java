@@ -1,5 +1,6 @@
 package com.belen.phishing.service;
 
+import com.belen.phishing.config.ConstantesUtil;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,14 +12,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    private final JavaMailSender defaultMailSender;
+    private final JavaMailSender netflixMailSender;
+    private final JavaMailSender linkedinMailSender;
 
     @Autowired
-    public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
+    public EmailService(JavaMailSender defaultMailSender, JavaMailSender netflixMailSender, JavaMailSender linkedinMailSender) {
+        this.defaultMailSender = defaultMailSender;
+        this.netflixMailSender = netflixMailSender;
+        this.linkedinMailSender = linkedinMailSender;
     }
 
-    public void sendEmail(String to, String subject, String text) {
+    public void sendEmail(String to, String subject, String text, String senderType) {
+        JavaMailSender mailSender = getMailSender(senderType);
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject(subject);
@@ -27,7 +33,8 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    public void sendEmail2(String to, String subject, String htmlContent) throws MessagingException {
+    public void sendEmail2(String to, String subject, String htmlContent, String senderType) throws MessagingException {
+        JavaMailSender mailSender = getMailSender(senderType);
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
@@ -37,5 +44,16 @@ public class EmailService {
         helper.setFrom("no-reply@belydu.com");
 
         mailSender.send(message);
+    }
+
+    private JavaMailSender getMailSender(String senderType) {
+        switch (senderType.toLowerCase()) {
+            case "netflix":
+                return netflixMailSender;
+            case "linkedin":
+                return linkedinMailSender;
+            default:
+                return defaultMailSender;
+        }
     }
 }

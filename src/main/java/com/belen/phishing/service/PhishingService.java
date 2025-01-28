@@ -41,7 +41,7 @@ public class PhishingService {
         String personalizedHtml = plantilla.getHtml().replace("{{ mi_variable }}", ConstantesUtil.BASE_URL + "/login/u/" + phishingRequest.getPlatform().replace("-pick", "") + "?username=" + phishingRequest.getUsername());
         String subject = plantilla.getSubject().replace("{{ username }}", phishingRequest.getUsername());
         // Send the email
-        emailService.sendEmail2(phishingRequest.getMail(), subject, personalizedHtml);
+        emailService.sendEmail2(phishingRequest.getMail(), subject, personalizedHtml, ConstantesUtil.DEFAULT);
 
         Optional<UserEntity> user = userRepository.findByUsername(phishingRequest.getUsername());
 
@@ -95,7 +95,7 @@ public class PhishingService {
                 .replace("{{password}}", obfuscatePassword(userDataRequest.getPassword()))
                 .replace("{{puntos}}", puntuacion.toString());
         String subject = userDataRequest.getUsername() + ", has sido victima de phishing!";        // Send the email
-        emailService.sendEmail2(user.get().getMail(), subject, personalizedHtml);
+        emailService.sendEmail2(user.get().getMail(), subject, personalizedHtml, ConstantesUtil.DEFAULT);
 
         // Delete all FakeAttemptEntity records for the user
         fakeAttemptRepository.deleteByUserUsername(userDataRequest.getUsername());

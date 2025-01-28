@@ -1,5 +1,6 @@
 package com.belen.phishing.controllers;
 
+import com.belen.phishing.config.ConstantesUtil;
 import com.belen.phishing.dto.ContactFormDTO;
 import com.belen.phishing.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,12 +24,12 @@ public class ContactFormController {
         // Send confirmation email to the user
         String userSubject = "Petición de contacto belydu";
         String userText = "Gracias por ponerte en contacto con nosotros, " + contactForm.getName() + ", hemos recibido tu mensaje: \"" + contactForm.getMessage() + "\". En breves, nos pondremos en contacto contigo.";
-        emailService.sendEmail(contactForm.getEmail(), userSubject, userText);
+        emailService.sendEmail(contactForm.getEmail(), userSubject, userText, ConstantesUtil.DEFAULT);
 
         // Send email to the admin
         String adminSubject = "beludu";
         String adminText = "Name: " + contactForm.getName() + "\nEmail: " + contactForm.getEmail() + "\nMessage: " + contactForm.getMessage();
-        emailService.sendEmail("antonio.saborido01@gmail.com", adminSubject, adminText);
+        emailService.sendEmail("antonio.saborido01@gmail.com", adminSubject, adminText, ConstantesUtil.DEFAULT);
         return ResponseEntity.ok().build();
     }
 }

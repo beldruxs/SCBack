@@ -62,7 +62,7 @@ public class AuthService {
 
         // Send the email
         try {
-            emailService.sendEmail2(user.getMail(), "Bienvenido a Safe Click", personalizedHtml);
+            emailService.sendEmail2(user.getMail(), "Bienvenido a Safe Click", personalizedHtml, ConstantesUtil.DEFAULT);
         } catch (MessagingException e) {
             return new ResponseEntity<>("User registered but failed to send email: " + e.getMessage(), HttpStatus.OK);
         }
